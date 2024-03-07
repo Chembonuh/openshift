@@ -1,8 +1,5 @@
-FROM centos/python-35-centos7
-
-# Upgrade pip and setuptools to avoid compatibility issues
-RUN pip install --upgrade pip setuptools
-# Upgrade pip
+FROM ubunutu:16.04
+RUN apt-get update -y && apt-get install -y python python-pip
 
 WORKDIR /usr/src/app
 
