@@ -2,7 +2,7 @@ FROM ubunutu:16.04
 RUN apt-get update -y && apt-get install -y python python-pip
 
 WORKDIR /usr/src/app
-
+RUN pip install --upgrade pip
 COPY . .
 
 RUN pip install  -r requirements.txt
