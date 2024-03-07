@@ -1,4 +1,4 @@
-# Use the official Nginx image as the base images
+# Use the official Nginx image as the base image
 FROM nginx:latest
 
 # Remove the default Nginx configuration file
