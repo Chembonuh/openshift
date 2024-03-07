@@ -1,8 +1,7 @@
-FROM ubuntu:latest
+FROM centos/python-35-centos7
 
-RUN apt-get update -y && \
-    apt-get install -y python-pip python-dev
-
+# Upgrade pip and setuptools to avoid compatibility issues
+RUN pip install --upgrade pip setuptools
 # Upgrade pip
 
 WORKDIR /usr/src/app
