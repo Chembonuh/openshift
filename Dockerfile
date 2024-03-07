@@ -1,6 +1,6 @@
 # Use the official Nginx image as the base images
 FROM nginx:latest
-
+ENV APP_MODULE=my_application.module:app
 # Remove the default Nginx configuration file
 RUN rm /etc/nginx/conf.d/default.conf
 
