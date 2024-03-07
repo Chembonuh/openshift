@@ -1,4 +1,4 @@
-# Use an official Python runtime as a parent image
+# Use an official Python runtime as a parent image cc
 FROM ubuntug:latest
 RUN apt update -y & apt install python3-pip
 # Set the working directory in the container
