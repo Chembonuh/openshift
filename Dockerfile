@@ -1,9 +1,6 @@
 # Use an official Ubuntu as a parent image
-FROM ubuntu:latest
-
+FROM python:latest
 # Install Python and pip
-RUN apt-get update -y && \
-    apt-get install -y python3-pip python3-dev
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
