@@ -1,6 +1,0 @@
----
-# handlers file for docker_ldap
-- name: Start nslcd services
-  ansible.builtin.service:
-   name: nslcd
-   state: started

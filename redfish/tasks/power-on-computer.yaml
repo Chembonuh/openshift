@@ -1,9 +1,0 @@
----
-- name: Power on computer
-  community.general.redfish_command:
-    category: Systems
-    command: PowerOn
-    baseuri: "{{ ansible_host }}"
-    username: "{{ ansible_user }}"
-    password: "{{ ansible_password }}"
-    timeout: 30
