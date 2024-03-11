@@ -1,0 +1,48 @@
+- name: Check docker version
+  command: docker --version
+  register: docker_version
+
+- name: display result
+  command: docker --version
+  when: "'Docker version 25.0.3, build 4debf41' not in docker_version.stdout"
+
+- name: Check if file exists
+  stat:
+    path: /etc/hosts
+  register: host_file_stat
+
+- name: Display file contents if it exists
+  command: cat /etc/hosts
+  when: host_file_stat.stat.exists
+
+- name: check if an update is needed
+  command: dnf check-update
+  register: check_update
+
+- name: Debug
+  debug:
+   var: check_update.stdout
+- name: Run update
+  dnf:
+    name: '*'
+    state: latest
+  changed_when: check_update.rc == 1
+
+- name: Let do ignore_errors
+  local_action: command docker ps -a
+
+
+- name: let us try blocks
+  block:
+    - name: Install apache on ubuntu
+      ansible.builtin.apt:
+        name:  apache2
+        state: present
+
+    - name: Make sure service is started and enabled
+      ansible.builtin.service:
+        name: apache2
+        state: started
+        enabled: true
+  when: ansible_os_family == 'Debian'      
+
