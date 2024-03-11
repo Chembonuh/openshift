@@ -1,0 +1,91 @@
+---
+- name: Provision docker base ldap server
+  ansible.builtin.include_tasks:
+    file: provision_openldap.yaml
+  when: openldap_provision
+
+- name: Start Docker based openldap Container
+  community.docker.docker_container:
+    name: openldap
+    image: bitnami/openldap:2.6.7
+    network_mode: "ldap"
+    published_ports:
+      - "{{ openldap_ports }}:1636"
+    detach: true
+    env:
+      LDAP_ADMIN_USERNAME: "admin"
+      LDAP_ADMIN_PASSWORD: "{{ ldap_admin_password }}"
+      LDAP_ENABLE_TLS: "yes"
+      LDAP_LDAPS_PORT_NUMBER: "1636"
+      LDAP_TLS_CA_FILE: "/opt/bitnami/openldap/certs/ca.crt"
+      LDAP_TLS_CERT_FILE: "/opt/bitnami/openldap/certs/server.crt"
+      LDAP_TLS_KEY_FILE: "/opt/bitnami/openldap/certs/server.key"
+      LDAP_PASSWORD_HASH: "{SSHA}"
+      LDAP_ROOT: "dc=example,dc=com"
+      LDAP_ADMIN_DN: "cn=admin,dc=example,dc=com"
+      LDAP_DOMAIN: "example"
+      LDAP_ORGANISATION: "example"
+    mounts:
+      - source: "{{ ldap_certs_volume_params.name }}"
+        target: /opt/bitnami/openldap/certs
+      - source: "{{ ldap_data_volume_params.name }}"
+        target: /opt/bitnami/openldap/var/data
+    state: "{{ ldap_state }}"
+    comparisons:
+      published_ports: strict
+      log_driver: strict
+      log_options: strict
+      mounts: allow_more_present
+      image: strict
+      pull: never
+      env: strict
+      '*': ignore
+  when: ldap_state == 'started'
+
+- name: Start Docker based phpLDAPadmin Container
+  community.docker.docker_container:
+    name: phpldapadmin
+    image: "osixia/phpldapadmin:latest"
+    detach: true
+    state: "started"
+    network_mode: "ldap"
+    published_ports:
+      - "{{ phpldapadmin_ports }}:443"
+    env:
+      PHPLDAPADMIN_LDAP_HOSTS: "openldap"
+      PHPLDAPADMIN_HTTPS: "true"
+      PHPLDAPADMIN_LDAP_CLIENT_TLS: "true"
+      PHPLDAPADMIN_HTTPS_CRT_FILENAME: "server.crt"
+      PHPLDAPADMIN_HTTPS_KEY_FILENAME: "server.key"
+      PHPLDAPADMIN_HTTPS_CA_CRT_FILENAME: "ca.crt"
+      PHPLDAPADMIN_LDAP_CLIENT_TLS_CA_CRT_FILENAME: "ca.crt"
+      PHPLDAPADMIN_LDAP_CLIENT_TLS_REQCERT: "allow"
+    mounts:
+      - source: "{{ ldap_phpconfig_volume_params.name }}"
+        target: /container/service/phpldapadmin/assets/config
+      - source: "{{ ldap_phpconfig_volume_params.name }}"
+        target: /container/service/phpldapadmin/assets/apache2/certs
+      - source: "{{ ldap_phpconfig_volume_params.name }}"
+        target: /container/service/ldap-client/assets/certs/
+    comparisons:
+      published_ports: strict
+      log_driver: strict
+      log_options: strict
+      mounts: allow_more_present
+      image: strict
+      env: strict
+      '*': ignore
+
+- name: Configure debian/ubuntu ldap client
+  ansible.builtin.include_tasks:
+    file: openldap_client_debian.yaml
+  when:
+    - configure_client
+    - ansible_os_family == "Debian"
+
+- name: Configure redhat ldap client
+  ansible.builtin.include_tasks:
+    file: openldap_client_redhat.yaml
+  when:
+    - configure_client
+    - ansible_os_family == "RedHat"

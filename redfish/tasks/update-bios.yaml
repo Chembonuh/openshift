@@ -1,0 +1,92 @@
+- name: What is the Bios version
+  community.general.redfish_info:
+    category: Update
+    command: GetFirmwareInventory
+    baseuri: "{{ ansible_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+  register: bios_verification_content
+
+- name: Define target Bios firmware version
+  ansible.builtin.set_fact:
+    target_bios_firmware_version: "{{ bios_version }}"
+
+- name: Extract current Bios firmware version
+  ansible.builtin.set_fact:
+    current_bios_firmware_version: >-
+      {{ bios_verification_content.redfish_facts.firmware.entries
+      | selectattr('Id', 'equalto', 'BIOS')
+      | map(attribute='Version')
+      | list
+      | first }}
+
+- name: Display current Bios Firmware Version
+  ansible.builtin.debug:
+    var: current_bios_firmware_version
+
+- name: Check if Bios update is needed
+  ansible.builtin.set_fact:
+    update_needed: "{{ current_bios_firmware_version != target_bios_firmware_version }}"
+
+- name: Update BIOS
+  ansible.builtin.uri:
+    url: "https://{{ ansible_host }}/redfish/v1/UpdateService/Actions/SimpleUpdate"
+    method: POST
+    user: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    validate_certs: false
+    headers:
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      UpdateComponent: "BIOS"
+      TransferProtocol: "HTTP"
+      ImageURI: "{{ nginx_server_url }}{{ bios_path }}"
+    status_code: [200, 202]
+  register: bios_update_result
+  when: update_needed
+
+- name: Extract task ID from the location For BIOS
+  ansible.builtin.set_fact:
+    bios_update_task_id: "{{ bios_update_result.location | regex_search('/Tasks/(\\d+)', '\\1') }}"
+  when: bios_update_response is defined and bios_update_response.location is defined
+
+- name: Check BIOS update task status
+  ansible.builtin.uri:
+    url: "https://{{ ansible_host }}/redfish/v1/TaskService/Tasks/{{  bios_update_task_id[0] }}"
+    method: GET
+    user: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    validate_certs: false
+    force_basic_auth: true
+    status_code: [200, 202]
+    headers:
+      Accept: "application/json"
+  register: task_status
+  until: task_status.json.TaskState == "Completed"
+  retries: 100
+  delay: 30
+  when: bios_update_response is defined and bios_update_response.location is defined
+
+- name: Reboot computer
+  community.general.redfish_command:
+    category: Systems
+    command: PowerReboot
+    baseuri: "{{ ansible_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+    timeout: 30
+  when: bios_update_response is defined
+
+- name: What is the new Bios version
+  community.general.redfish_info:
+    category: Update
+    command: GetFirmwareInventory
+    baseuri: "{{ ansible_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+  register: bios_verification_content
+
+- name: Display new BIOS Firmware Version
+  ansible.builtin.debug:
+    var: bios_verification_content

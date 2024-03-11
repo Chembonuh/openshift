@@ -1,0 +1,55 @@
+---
+- name: Get session token
+  community.general.redfish_command:
+    category: Sessions
+    command: CreateSession
+    baseuri: "{{ ansible_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+  register: result
+
+- name: Force off computer
+  community.general.redfish_command:
+    category: Systems
+    command: PowerForceOff
+    baseuri: "{{ ansible_host }}"
+    auth_token: "{{ result.session.token }}"
+    timeout: 30
+  when: power_off
+
+- name: Reboot via redfish
+  community.general.redfish_command:
+    category: Systems
+    command: PowerForceRestart
+    baseuri: "{{ ansible_host }}"
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_password }}"
+  when: system_reboot
+
+- name: Set Pxe boot override
+  ansible.builtin.include_tasks:
+    file: pxe-boot.yaml
+  when: pxe_boot
+
+- name: Include BMC update tasks
+  ansible.builtin.include_tasks:
+    file: update-bmc.yaml
+  when: update_bmc
+
+- name: Include BIOS update tasks
+  ansible.builtin.include_tasks:
+    file: update-bios.yaml
+  when: update_bios
+
+- name: Power on computer
+  ansible.builtin.include_tasks:
+    file: power-on-computer.yaml
+  when: power_on
+
+- name: Destroy session token
+  community.general.redfish_command:
+    category: Sessions
+    command: DeleteSession
+    baseuri: "{{ ansible_host }}"
+    auth_token: "{{ result.session.token }}"
+    session_uri: "{{ result.session.uri }}"

@@ -1,0 +1,61 @@
+---
+ldap_state: "started"
+phpldapadmin_ports: "443"
+openldap_ports: "636"
+ldap_host: "{{ hostvars[(groups['docker_openldap'] | first)]['ansible_host'] }}"
+base_dn: "dc=example,dc=com"
+bind_dn: "cn=admin,{{ base_dn }}"
+
+# LDAP Schema Entry Configurations
+ldap_default_user: "uid=example,ou=users,{{ base_dn }}"
+
+ldap_schema:
+  imm:
+    devs: []
+    orches: []
+    expe: []
+    cr: []
+    soft: []
+    data_ana: []
+    visu: []
+  networkSer:
+    virtual:
+      - vl11
+      - vl12
+      - vl13
+  programs:
+    semaphore:
+      - semAdmin
+      - sems
+    grafana:
+      - grAdmins
+      - grsers
+
+configure_client: false
+generate_server_certs: false
+openldap_provision: false
+
+# LDAP Container Volume Configuration
+ldap_certs_volume_params:
+  name: ldap_certs
+  driver: "{{ docker_volume_defaults.driver }}"
+  driver_options:
+    type: "{{ docker_volume_defaults.driver_options.type }}"
+    device: "{{ docker_volume_defaults.driver_options.device_default }}/ldap_certs"
+    o: "{{ docker_volume_defaults.driver_options.o }}"
+
+ldap_data_volume_params:
+  name: ldap_database
+  driver: "{{ docker_volume_defaults.driver }}"
+  driver_options:
+    type: "{{ docker_volume_defaults.driver_options.type }}"
+    device: "{{ docker_volume_defaults.driver_options.device_default }}/ldap_database"
+    o: "{{ docker_volume_defaults.driver_options.o }}"
+
+ldap_phpconfig_volume_params:
+  name: php_config
+  driver: "{{ docker_volume_defaults.driver }}"
+  driver_options:
+    type: "{{ docker_volume_defaults.driver_options.type }}"
+    device: "{{ docker_volume_defaults.driver_options.device_default }}/php_config"
+    o: "{{ docker_volume_defaults.driver_options.o }}"

@@ -1,0 +1,63 @@
+---
+- name: Install required ldap packages
+  ansible.builtin.apt:
+    name:
+      - libnss-ldapd
+      - libpam-ldapd
+      - ldap-utils
+    state: present
+
+- name: Configure pam-auth-update
+  ansible.builtin.expect:
+    command: sudo pam-auth-update --force
+    responses:
+      "PAM profiles to enable: ": "2\n"
+    timeout: 300
+  become: true
+
+- name: Update /etc/pam.d/common-auth
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-auth
+    line: "session required pam_mkhomedir.so skel=/etc/skel umask=077"
+
+- name: Template the openldap certificates
+  ansible.builtin.copy:
+    src: ./files/certs/ca.crt
+    dest: /etc/ssl/certs/ca.crt
+    mode: '0644'
+  become: true
+  when:
+    - ldap_state == 'started'
+
+- name: Configure nslcd
+  ansible.builtin.template:
+    src: nslcd.conf.j2
+    dest: /etc/nslcd.conf
+    mode: '0600'
+    owner: root
+    group: root
+
+- name: Configure NSS
+  ansible.builtin.template:
+    src: nsswitch.conf.j2
+    dest: /etc/nsswitch.conf
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Configure ldap.conf
+  ansible.builtin.template:
+    src: ldap.conf.j2
+    dest: /etc/ldap/ldap.conf
+    mode: '0644'
+    owner: root
+    group: root
+  notify: restart nslcd
+
+- name: Restart nscd and nslcd services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - nscd
+    - nslcd

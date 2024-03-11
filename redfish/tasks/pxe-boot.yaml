@@ -1,0 +1,8 @@
+- name: Set PXE boot override
+  community.general.redfish_command:
+    category: Systems
+    command: SetOneTimeBoot
+    bootdevice: Pxe
+    baseuri: "{{ ansible_host }}"
+    auth_token: "{{ result.session.token }}"
+    timeout: 30

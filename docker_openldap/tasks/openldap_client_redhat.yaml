@@ -1,0 +1,16 @@
+- name: Install required ldap packages
+  ansible.builtin.yum:
+    name:
+      - nss-pam-ldapd
+      - openssl
+      - nscd
+    state: present
+
+- name: Configure nslcd
+  ansible.builtin.template:
+    src: nslcd.conf.j2
+    dest: /etc/nslcd.conf
+    mode: '0600'
+    owner: root
+    group: root
+  notify: restart nslcd
