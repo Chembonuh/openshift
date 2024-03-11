@@ -1,0 +1,7 @@
+Ansible Things
+Important ansible links
+https://galaxy.ansible.com/ui/ 
+ansible-galaxy role install geerlingguy.apache \
+ansible-galaxy role install geerlingguy.apache 
+ansible-galaxy role install geerlingguy.mysql
+ansible-galaxy role install geerlingguy.php
