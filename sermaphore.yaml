@@ -1,0 +1,25 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: semaphore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: semaphore
+  template:
+    metadata:
+      labels:
+        app: semaphore
+    spec:
+      containers:
+      - name: semaphore
+        image: semaphoreci/semaphore
+        volumeMounts:
+        - name: semaphore-data
+          mountPath: /semaphore/data
+      volumes:
+      - name: semaphore-data
+        persistentVolumeClaim:
+          claimName: semaphore-data
