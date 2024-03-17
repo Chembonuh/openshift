@@ -1,0 +1,73 @@
+- name: Set static IP for eth0
+  community.general.nmcli:
+    conn_name: static-eth0
+    ifname: enp1s0          
+    type: ethernet                    
+    ip4: 192.168.122.q/24              
+    gw4: 192.168.1.1                   
+    dns4: 192.168.1.1                  
+    state: present
+
+- Check status
+command: sudo nmcli device status
+- name: Configure internal NIC (eth1) for internal network
+community.general.nmcli:
+conn_name: internal-con
+ifname: eth1
+type: ethernet
+ip4: 10.0.0.100/24
+gw4: 10.0.0.1
+dns4: 10.0.0.1
+state: present
+
+- name: Configure external NIC (eth0) for external access
+  community.general.nmcli:
+    conn_name: external-con
+    ifname: eth0
+    type: ethernet
+    ip4: 192.168.1.100/24
+    gw4: 192.168.1.1
+    dns4: 8.8.8.8
+    state: present
+
+
+
+- name: Check status of internal connection
+  community.general.nmcli:
+    conn_name: static-eth0
+    state: query
+  register: internal_con_status
+
+- name: Display internal connection status
+  ansible.builtin.debug:
+    msg: "{{ static-eth0_status }}"
+
+- name: Check status of external connection
+  community.general.nmcli:
+    conn_name: external-con
+    state: query
+  register: external_con_status
+
+- name: Display external connection status
+  ansible.builtin.debug:
+    msg: "{{ external_con_status }}"
+
+- name: Test internal network connectivity
+  ansible.builtin.command: ping -c 3 10.0.0.1
+  register: ping_internal
+  ignore_errors: yes
+
+- name: Display internal ping results
+  ansible.builtin.debug:
+    msg: "{{ ping_internal.stdout_lines }}"
+  when: ping_internal.rc == 0
+
+- name: Test external network connectivity
+  ansible.builtin.command: ping -c 3 8.8.8.8
+  register: ping_external
+  ignore_errors: yes
+
+- name: Display external ping results
+  ansible.builtin.debug:
+    msg: "{{ ping_external.stdout_lines }}"
+  when: ping_external.rc == 0
