@@ -1,0 +1,49 @@
+---
+# Set vm.swappiness to 5 in /etc/sysctl.conf
+- name: Check vm.swappiness on host1
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: '60'
+    state: present
+
+- name: Check vm.swappiness on another host
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: '31'
+    state: present
+  
+- name: List installed packages and save to file on RedHat
+  ansible.builtin.shell: yum list installed > /home/ansible/package
+  args:
+    executable: /bin/bash
+
+- name: Fetch package list from RedHat host
+  ansible.builtin.fetch:
+    src: /home/ansible/package
+    dest: "/home/ansible/backup_repo/redhat_packages.txt"
+    flat: yes
+
+- name: List installed packages and save to file on centos
+  ansible.builtin.shell: yum list installed > /home/vagrant/package
+  args:
+    executable: /bin/bash
+  delegate_to: host_b
+
+- name: Fetch package list from RedHat host
+  ansible.builtin.fetch:
+    src: /home/vagrant/package
+    dest: "/home/ansible/backup_repo/centos_packages.txt"  #path on controler
+    flat: yes
+  delegate_to: host_b
+
+
+- name: Compare both files
+  ansible.builtin.command: diff redhat_packages.txt redhat_packages.txt
+  delegate_to: localhost
+  args:
+    chdir: /home/user-on-controler/backup_repo
+  vars:
+    ansible_connection: local
+  register: diff_result
+  ignore_errors: true
+
