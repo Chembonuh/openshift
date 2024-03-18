@@ -1,0 +1,41 @@
+- name: Create a new primary partition on /dev/sdb
+  community.general.parted:
+    device: "{{ physical_device }}"
+    number: 1
+    state: present
+    part_start: 1MiB
+    part_end: 100%
+    fs_type: ext4
+
+- name: Create a volume group on top of /dev/sdb1
+  community.general.lvg:
+    vg: "{{ vg_name }}"
+    pvs: /dev/sdb1
+    pesize: 128
+
+- name: Create a logical volume of desired size
+  community.general.lvol:
+    vg: "{{ vg_name }}"  
+    lv: "{{ lv_name }}" 
+    size: 100%VG  # Adjust size as needed; this uses the rest of the VG
+
+- name: Format the logical volume with ext4 filesystem
+  community.general.filesystem:
+    fstype: ext4
+    dev: "/dev/{{ vg_name }}/{{ lv_name }}" # Adjust based on the VG and LV names
+
+- name: Ensure mount point /data exists
+  ansible.builtin.file:
+    path: /data
+    state: directory
+    mode: '0755'
+
+- name: Mount the logical volume to /data
+  ansible.builtin.mount:
+    path: /data
+    src: /dev/vg_services/lv_data  # Adjust based on the VG and LV names
+    fstype: ext4
+    state: mounted
+    opts: defaults
+    dump: 0
+    passno: 2
