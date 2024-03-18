@@ -1,0 +1,55 @@
+Commands
+kernel Tunnelling commands
+$sysctl -a to view kernel parameters
+$sysctl kernel.sched_latency_ns.  View a specific kernel parameter
+$sudo sysctl -w kernel.sched_latency_ns=5000000 = Set a kernel parameter (temporary): 
+
+
+DIFFF COMMAND
+diff file1  file2   will show the differences between two files
+sdiff file1 file2 will display the the differences side by side.
+
+SORT COMMAND.
+sort: This command is used to sort lines of text in files or input provided to it. Without any files or piped input, it waits for input from stdin (standard input).
+ $sysctl -a | sort:  To list and sort all sysctl parameters
+$sysctl -a | grep ipv4 | sort :  To filter and sort sysctl parameters by a specific pattern (e.g., parameters related to IPv4)
+$sort -n filename  : output numerical values
+$sort -r filename:  reverse sort
+$sort -k 2 filename: tabular
+
+Managing packaes on redhat systems
+$rpm -qa | sort.   sort packages aphabeticallyt
+$rpm -qa | sort > sorted_packages.txt : put this result in a file. we can do this on two systems and then use the diff command to compare. 
+
+When a new vm is deployed which requires installin an application,
+Approach 1
+Deploy the vm and then share your screen and install the application yourself or
+
+Approach 2
+Give the customer limited and temporal sudo access
+Create a temporal user using useradd
+Make a backup copy of file before editing
+Vim /etc/sudoers
+And enter  %basicsudo ALL=(ALL) NOPASSWD: /usr/bin/apt-get install * ,  /bin/systemctl start yourapp
+basicsudo ALL=(ALL) NOPASSWD: /usr/bin/apt-get install package1 package2, /bin/systemctl start yourapp
+visudo
+
+sudo groupadd che_group
+sudo useradd -m -g che_group -d /home/che che
+
+
+all files created here are read only by defaults
+setfacl -d -m u::r,g::r,o::r /path/to/directory
+
+
+
+
+
+
+
+
+
+
+
+
+
