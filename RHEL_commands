@@ -46,6 +46,41 @@ setfacl -d -m u::r,g::r,o::r /path/to/directory
 
 
 
+---
+- name: Set default ACL on directory
+  hosts: all
+  become: yes  # Required for permission changes
+  tasks:
+    - name: Ensure directory exists
+      ansible.builtin.file:
+        path: "/path/to/directory"
+        state: directory
+        mode: '0755'
+
+    - name: Set default read-only ACL for new files in the directory
+      ansible.posix.acl:
+        path: "/path/to/directory"
+        entity: "user"
+        etype: "default"
+        permissions: "read"
+        state: present
+
+    - name: Set default read-only ACL for new files in the directory for groups
+      ansible.posix.acl:
+        path: "/path/to/directory"
+        entity: "group"
+        etype: "default"
+        permissions: "read"
+        state: present
+
+    - name: Set default read-only ACL for new files in the directory for others
+      ansible.posix.acl:
+        path: "/path/to/directory"
+        entity: "other"
+        etype: "default"
+        permissions: "read"
+        state: present
+
 
 
 
