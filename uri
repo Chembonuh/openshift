@@ -1,0 +1,48 @@
+- name: Download foo.conf
+  ansible.builtin.get_url:
+    url: http://example.com/path/file.conf
+    dest: /etc/foo.conf
+    mode: '0440'
+
+
+- name: POST from contents of local file
+  ansible.builtin.uri:
+    url: https://httpbin.org/post
+    method: POST
+    src: file.json
+
+- name: Pause play until a URL is reachable from this host
+  ansible.builtin.uri:
+    url: "http://192.0.2.1/some/test"
+    follow_redirects: none
+    method: GET
+  register: _result
+  until: _result.status == 200
+  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+  delay: 5 # Every 5 seconds
+
+- name: Queue build of a project in Jenkins
+  ansible.builtin.uri:
+    url: http://{{ jenkins.host }}/job/{{ jenkins.job }}/build?token={{ jenkins.token }}
+    user: "{{ jenkins.user }}"
+    password: "{{ jenkins.password }}"
+    method: GET
+    force_basic_auth: true
+    status_code: 201
+
+
+- name: Create a jenkins job using basic authentication
+  community.general.jenkins_job:
+    config: "{{ lookup('file', 'templates/test.xml') }}"
+    name: test
+    password: admin
+    url: http://localhost:8080
+    user: admin
+
+- name: Create a jenkins job using the token
+  community.general.jenkins_job:
+    config: "{{ lookup('template', 'templates/test.xml.j2') }}"
+    name: test
+    token: asdfasfasfasdfasdfadfasfasdfasdfc
+    url: http://localhost:8080
+    user: admin
