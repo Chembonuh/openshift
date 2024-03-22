@@ -1,0 +1,3 @@
+ oc new-app --docker-image=openshift/hello-openshift
+get a volume config in yaml    $oc get pv pv0006 -o yaml
+# oc get pods --all-namespaces
