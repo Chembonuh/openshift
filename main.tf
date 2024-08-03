@@ -2,10 +2,15 @@ provider "aws" {
   region = var.region
 }
 
-module "web_server" {
-  source = "./web"
-  instance_ami = var.instance_ami
+resource "aws_instance" "web_server" {
+  ami           = var.instance_ami
   instance_type = var.instance_type
-  volume_size = var.volume_size
+  key_name      = var.key_name
+
+  ebs_block_device {
+    device_name = "/dev/sdh"
+    volume_size = var.volume_size
+  }
+
   tags = var.tags
 }
