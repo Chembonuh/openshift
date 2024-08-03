@@ -11,3 +11,6 @@ resource "aws_instance" "web_server" {
     device_name = "/dev/sdh"
     volume_size = var.volume_size
   }
+
+  tags = var.tags
+}
