@@ -1,5 +1,8 @@
+provider "aws" {
+  region = var.region
+}
+
 resource "aws_vpc" "my_vpc" {
-  provider = aws.east2
   cidr_block = "10.0.0.0/16"
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -9,7 +12,6 @@ resource "aws_vpc" "my_vpc" {
 }
 
 resource "aws_subnet" "my_subnet" {
-  provider = aws.east2
   vpc_id            = aws_vpc.my_vpc.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-2a"
@@ -19,7 +21,6 @@ resource "aws_subnet" "my_subnet" {
 }
 
 resource "aws_security_group" "my_sg" {
-  provider = aws.east2
   name        = "allow_ssh"
   description = "Allow SSH inbound traffic"
   vpc_id      = aws_vpc.my_vpc.id
@@ -38,4 +39,17 @@ resource "aws_security_group" "my_sg" {
   tags = {
     Name = "allow_ssh"
   }
+}
+
+resource "aws_instance" "web_server" {
+  ami           = var.instance_ami
+  instance_type = var.instance_type
+  key_name      = var.key_name
+
+  ebs_block_device {
+    device_name = "/dev/sdh"
+    volume_size = var.volume_size
+  }
+
+  tags = var.tags
 }
