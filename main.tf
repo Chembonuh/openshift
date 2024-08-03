@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "web_server" {
-  source = "./"
+  #source = "./"
   instance_ami = var.instance_ami
   instance_type = var.instance_type
   volume_size = var.volume_size
