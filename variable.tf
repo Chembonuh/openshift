@@ -19,7 +19,7 @@ variable "instance_type" {
 variable "volume_size" {
   description = "The size of the EBS volume in GB"
   type        = number
-  default     = 30
+  default     = 40
 }
 
 variable "tags" {
