@@ -2,17 +2,19 @@ provider "aws" {
   region = var.region
 }
 
-resource "aws_instance" "regular_instance" {
+resource "aws_instance" "web_server" {
   ami           = var.instance_ami
   instance_type = var.instance_type
+  key_name      = var.key_name
+
+  ebs_block_device {
+    device_name = "/dev/sdh"
+    volume_size = var.volume_size
+  }
 
   tags = var.tags
 
-  root_block_device {
-    volume_size = var.volume_size
-  }
-}
- user_data = <<-EOF
+  user_data = <<-EOF
               #!/bin/bash
               yum update -y
               yum install -y httpd
@@ -22,3 +24,6 @@ resource "aws_instance" "regular_instance" {
               EOF
 }
 
+output "web_server_url" {
+  value = "http://${aws_instance.web_server.public_ip}"
+}
